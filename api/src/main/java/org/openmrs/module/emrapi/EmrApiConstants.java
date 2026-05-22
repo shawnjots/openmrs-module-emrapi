@@ -211,6 +211,8 @@ public class EmrApiConstants {
 	
 	public static final String GP_VISIT_ASSIGNMENT_HANDLER_ADJUST_ENCOUNTER_TIME_OF_DAY_IF_NECESSARY = "emrapi.EmrApiVisitAssignmentHandler.adjustEncounterTimeOfDayIfNecessary";
 	
+	public static final String GP_VISIT_ASSIGNMENT_HANDLER_ALLOW_OVERLAPPING_VISITS_AT_ANOTHER_LOCATION = "emrapi.EmrApiVisitAssignmentHandler.allowOverlappingVisitsAtAnotherLocation";
+	
 	public static final String EMR_CONCEPT_SOURCES_FOR_DIAGNOSIS_SEARCH = "emrapi.conceptSourcesForDiagnosisSearch";
 	
 	public static final ArrayList<String> UNSAFE_PRIVILEGES = new ArrayList<String>(Arrays.asList("Share Metadata",

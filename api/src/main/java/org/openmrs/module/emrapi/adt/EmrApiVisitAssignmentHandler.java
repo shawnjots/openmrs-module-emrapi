@@ -17,6 +17,7 @@ import org.openmrs.Order;
 import org.openmrs.Patient;
 import org.openmrs.Visit;
 import org.openmrs.VisitType;
+import org.openmrs.api.APIException;
 import org.openmrs.api.AdministrationService;
 import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
@@ -136,6 +137,13 @@ public class EmrApiVisitAssignmentHandler extends BaseEncounterVisitHandler impl
 		// there is no suitable visit so create one if there is a mapping encounter type to the visit type via the Global property
 		if (StringUtils.isNotBlank(administrationService
 		        .getGlobalProperty(EmrApiConstants.GP_VISIT_ASSIGNMENT_HANDLER_ENCOUNTER_TYPE_TO_VISIT_TYPE_MAP))) {
+			if ("false"
+			        .equalsIgnoreCase(administrationService.getGlobalProperty(
+			            EmrApiConstants.GP_VISIT_ASSIGNMENT_HANDLER_ALLOW_OVERLAPPING_VISITS_AT_ANOTHER_LOCATION))
+			        && hasActiveVisitOnSameDay(candidates, when)) {
+				throw new APIException("emrapi.visitassignment.patientAlreadyHasActiveVisitAtAnotherLocation",
+				        (Object[]) null);
+			}
 			VisitType visitType = getEncounterTypetoVisitTypeMapper().getVisitTypeForEncounter(encounter);
 			// only process a visit if there is a matching visitType
 			if (visitType != null) {
@@ -173,6 +181,22 @@ public class EmrApiVisitAssignmentHandler extends BaseEncounterVisitHandler impl
 				}
 			}
 		}
+	}
+	
+	// we need to check the entire day because we will create a visit that spans the entire day
+	private boolean hasActiveVisitOnSameDay(List<Visit> candidates, Date when) {
+		if (candidates == null) {
+			return false;
+		}
+		Date startOfDay = DateUtils.truncate(when, java.util.Calendar.DAY_OF_MONTH);
+		Date endOfDay = new Date(DateUtils.addDays(startOfDay, 1).getTime() - 1);
+		for (Visit candidate : candidates) {
+			if (!candidate.getStartDatetime().after(endOfDay)
+			        && (candidate.getStopDatetime() == null || !candidate.getStopDatetime().before(startOfDay))) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public void setVisitService(VisitService visitService) {
